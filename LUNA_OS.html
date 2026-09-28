@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUNA OS — Personal Command Center</title>
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #0b0c10;
+      --bg-surface: #14161d;
+      --bg-surface-hover: #1c1e28;
+      --bg-card: #181a22;
+      --border-color: rgba(255, 255, 255, 0.07);
+      --border-focus: rgba(167, 139, 250, 0.5);
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      
+      --accent-primary: #a78bfa;
+      --accent-glow: rgba(167, 139, 250, 0.15);
+      --accent-secondary: #60a5fa;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(96, 165, 250, 0.03) 0%, transparent 40%);
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* Layout Components */
+    .app-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 24px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+    }
+
+    .nav-item button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition);
+      text-align: left;
+    }
+
+    .nav-item button:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .nav-item.active button {
+      background: var(--accent-glow);
+      color: var(--accent-primary);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-top: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2e3240;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .user-info .name { font-size: 0.9rem; font-weight: 600; }
+    .user-info .role { font-size: 0.75rem; color: var(--text-dim); }
+
+    /* Main Area */
+    .main-content {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .page { display: none; }
+    .page.active { display: flex; flex-direction: column; gap: 28px; animation: fadeIn 0.25s ease-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header & Quick Capture Trigger */
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .greeting h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+    .greeting p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .quick-capture-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .quick-capture-box:hover {
+      border-color: var(--border-focus);
+      background: var(--bg-surface-hover);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .quick-capture-box input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 1rem;
+      width: 100%;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .shortcut-badge {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* Dashboard Layout Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .col-8 { grid-column: span 8; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-12 { grid-column: span 12; }
+
+    /* Buttons & Controls */
+    .btn {
+      background: var(--accent-primary);
+      color: #000;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      width: 90%;
+      max-width: 560px;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: modalUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Form Inputs */
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .input-field, textarea, select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text-main);
+      outline: none;
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+    .input-field:focus, textarea:focus, select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Dynamic Item Lists */
+    .item-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+    .list-item:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      border: 2px solid var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .checkbox.checked {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #000;
+    }
+
+    /* Badges & Pills */
+    .badge {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-inbox { background: rgba(156, 163, 175, 0.15); color: #d1d5db; }
+    .badge-project { background: rgba(167, 139, 250, 0.2); color: var(--accent-primary); }
+    .badge-active { background: rgba(96, 165, 250, 0.2); color: var(--accent-secondary); }
+
+    /* Progress Bar */
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      .app-container { flex-direction: column-reverse; }
+      .sidebar {
+        width: 100%;
+        height: 65px;
+        flex-direction: row;
+        padding: 0 12px;
+        align-items: center;
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+      }
+      .brand, .user-profile { display: none; }
+      .nav-list { flex-direction: row; margin: 0; width: 100%; justify-content: space-around; }
+      .nav-item button span { display: none; }
+      .main-content { padding: 20px 16px 80px 16px; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .col-8, .col-6, .col-4, .col-12 { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i data-lucide="moon" size="18" style="color: #000;"></i></div>
+        <span class="brand-title">LUNA OS</span>
+      </div>
+
+      <ul class="nav-list">
+        <li class="nav-item active"><button onclick="switchTab('dashboard')"><i data-lucide="layout-dashboard" size="18"></i><span>Dashboard</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('ideas')"><i data-lucide="lightbulb" size="18"></i><span>Idea Vault</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('projects')"><i data-lucide="folder-kanban" size="18"></i><span>Projects</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('today')"><i data-lucide="check-square" size="18"></i><span>Today</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('journal')"><i data-lucide="book-open" size="18"></i><span>Journal</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('habits')"><i data-lucide="flame" size="18"></i><span>Habits</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('review')"><i data-lucide="bar-chart-2" size="18"></i><span>Review</span></button></li>
+      </ul>
+
+      <div class="user-profile">
+        <div class="avatar">L</div>
+        <div class="user-info">
+          <div class="name">Luna</div>
+          <div class="role">Personal Workspace</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="main-content">
+
+      <!-- 1. DASHBOARD PAGE -->
+      <section id="dashboard" class="page active">
+        <div class="header-section">
+          <div class="greeting">
+            <h1 id="greeting-text">Good morning, Luna.</h1>
+            <p>What's on your mind today?</p>
+          </div>
+        </div>
+
+        <!-- Quick Capture Trigger Input -->
+        <div class="quick-capture-box" onclick="openCaptureModal()">
+          <i data-lucide="sparkles" style="color: var(--accent-primary);"></i>
+          <input type="text" placeholder="💡 Capture an idea instantly..." readonly>
+          <span class="shortcut-badge">Ctrl + Space</span>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Active Priorities / Today -->
+          <div class="card col-8">
+            <div class="card-title">
+              <span><i data-lucide="target" size="18"></i> Today's Focus</span>
+              <span id="dash-today-progress" style="font-size: 0.8rem; color: var(--text-muted);">0 / 0 Done</span>
+            </div>
+            <ul id="dash-priorities-list" class="item-list"></ul>
+          </div>
+
+          <!-- Habit Tracker Streak Box -->
+          <div class="card col-4">
+            <div class="card-title"><i data-lucide="flame" size="18"></i> Habit Streaks</div>
+            <ul id="dash-habits-list" class="item-list"></ul>
+          </div>
+
+          <!-- Active Projects -->
+          <div class="card col-8">
+            <div class="card-title">
+              <span><i data-lucide="folder" size="18"></i> Active Projects</span>
+              <button class="btn-secondary btn" style="font-size: 0.75rem; padding: 4px 10px;" onclick="switchTab('projects')">View All</button>
+            </div>
+            <div id="dash-projects-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
+          </div>
+
+          <!-- Quick Journal Box -->
+          <div class="card col-4">
+            <div class="card-title"><i data-lucide="edit-3" size="18"></i> Quick Journal</div>
+            <textarea id="dash-quick-journal" rows="4" placeholder="How is today shaping up? Write a brief reflection..." style="resize: none;"></textarea>
+            <button class="btn" style="align-self: flex-end;" onclick="saveQuickJournal()">Save Entry</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. IDEA VAULT PAGE -->
+      <section id="ideas" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Idea Vault</h1>
+            <p>Capture everything instantly. Organize later.</p>
+          </div>
+          <button class="btn" onclick="openCaptureModal()"><i data-lucide="plus"></i> New Idea</button>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <input type="text" id="idea-search" class="input-field" placeholder="Search ideas..." oninput="renderIdeas()" style="flex-grow: 1;">
+          <select id="idea-filter" class="input-field" onchange="renderIdeas()">
+            <option value="ALL">All Statuses</option>
+            <option value="Inbox">Inbox</option>
+            <option value="Exploring">Exploring</option>
+            <option value="Project">Project</option>
+            <option value="Parked">Parked</option>
+          </select>
+        </div>
+
+        <div id="ideas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+      </section>
+
+      <!-- 3. PROJECTS PAGE -->
+      <section id="projects" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Active Projects</h1>
+            <p>Turn scattered concepts into concrete outcomes.</p>
+          </div>
+          <button class="btn" onclick="openProjectModal()"><i data-lucide="plus"></i> New Project</button>
+        </div>
+
+        <div id="projects-list" style="display: flex; flex-direction: column; gap: 16px;"></div>
+      </section>
+
+      <!-- 4. TODAY PAGE -->
+      <section id="today" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Today's Command Center</h1>
+            <p>High impact execution for today.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Task Manager</div>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="new-task-input" class="input-field" placeholder="Add a new task..." style="flex-grow: 1;">
+            <button class="btn" onclick="addTask()">Add Task</button>
+          </div>
+          <div class="progress-bar-bg" style="margin: 10px 0;"><div id="today-task-progress-bar" class="progress-bar-fill" style="width: 0%;"></div></div>
+          <ul id="today-tasks-list" class="item-list"></ul>
+        </div>
+      </section>
+
+      <!-- 5. JOURNAL PAGE -->
+      <section id="journal" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Daily Journal</h1>
+            <p>Space for quiet reflection and mental clarity.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-group">
+            <label>Entry Title</label>
+            <input type="text" id="journal-title" class="input-field" placeholder="Give today a title...">
+          </div>
+          <div class="form-group">
+            <label>How was today?</label>
+            <textarea id="journal-content" rows="6" placeholder="Write freely about your thoughts, breakthroughs, or challenges..."></textarea>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 8px; align-items: center;" id="mood-selector">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Mood:</span>
+              <button class="btn-secondary btn" style="padding: 4px 10px;" onclick="selectMood('🙂 Good')">🙂</button>
+              <button class="btn-secondary btn" style="padding: 4px 10px;" onclick="selectMood('😐 Neutral')">😐</button>
+              <button class="btn-secondary btn" style="padding: 4px 10px;" onclick="selectMood('🔥 Productive')">🔥</button>
+              <button class="btn-secondary btn" style="padding: 4px 10px;" onclick="selectMood('🧠 Overthinking')">🧠</button>
+            </div>
+            <button class="btn" onclick="saveJournalEntry()">Save Entry</button>
+          </div>
+        </div>
+
+        <div id="journal-entries-list" style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;"></div>
+      </section>
+
+      <!-- 6. HABITS PAGE -->
+      <section id="habits" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Habits & Consistency</h1>
+            <p>Small daily actions leading to remarkable results.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="new-habit-input" class="input-field" placeholder="New habit (e.g. Read 10 pages)..." style="flex-grow: 1;">
+            <button class="btn" onclick="addHabit()">Create Habit</button>
+          </div>
+        </div>
+
+        <div id="habits-full-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+      </section>
+
+      <!-- 7. REVIEW PAGE -->
+      <section id="review" class="page">
+        <div class="header-section">
+          <div>
+            <h1>Weekly & Monthly Review</h1>
+            <p>Synthesize patterns and evaluate progress.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card col-12">
+            <div class="card-title"><i data-lucide="cpu" size="18"></i> Pattern Detection Engine (Automated)</div>
+            <div id="patterns-container" style="display: flex; gap: 12px; flex-wrap: wrap;"></div>
+          </div>
+          
+          <div class="card col-6">
+            <div class="card-title">Accomplishments & Breakthroughs</div>
+            <textarea class="input-field" rows="4" placeholder="What went really well this week?"></textarea>
+          </div>
+
+          <div class="card col-6">
+            <div class="card-title">Next Focus</div>
+            <textarea class="input-field" rows="4" placeholder="What 1-2 major projects need priority next week?"></textarea>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Quick Capture Modal -->
+  <div id="capture-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-weight: 600;"><i data-lucide="sparkles" size="18" style="color: var(--accent-primary);"></i> Quick Capture Idea</h3>
+        <i data-lucide="x" style="cursor: pointer; color: var(--text-muted);" onclick="closeCaptureModal()"></i>
+      </div>
+      <input type="text" id="quick-idea-input" class="input-field" placeholder="Idea title or core thought..." style="font-size: 1.1rem;">
+      <textarea id="quick-idea-details" rows="3" placeholder="Optional details or context..."></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary btn" onclick="closeCaptureModal()">Cancel</button>
+        <button class="btn" onclick="saveQuickIdea()">Save to Inbox</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explore & Convert Modal -->
+  <div id="explore-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Elaborate Idea → Project</h3>
+        <i data-lucide="x" style="cursor: pointer; color: var(--text-muted);" onclick="closeExploreModal()"></i>
+      </div>
+      <div class="form-group">
+        <label>Why this matters / The Problem</label>
+        <textarea id="exp-problem" rows="2" class="input-field"></textarea>
+      </div>
+      <div class="form-group">
+        <label>First Action Step</label>
+        <input type="text" id="exp-action" class="input-field" placeholder="e.g. Conduct market research">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary btn" onclick="closeExploreModal()">Cancel</button>
+        <button class="btn" onclick="convertIdeaToProjectExec()">Convert to Active Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Project Modal -->
+  <div id="project-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Create New Project</h3>
+        <i data-lucide="x" style="cursor: pointer; color: var(--text-muted);" onclick="closeProjectModal()"></i>
+      </div>
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" id="new-proj-name" class="input-field" placeholder="e.g. AI Wardrobe">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="new-proj-desc" rows="2" class="input-field" placeholder="Short description..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Next Action</label>
+        <input type="text" id="new-proj-action" class="input-field" placeholder="First immediate action step...">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary btn" onclick="closeProjectModal()">Cancel</button>
+        <button class="btn" onclick="saveNewProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial Seed Data
+    const defaultData = {
+      ideas: [
+        { id: '1', title: 'AI Wardrobe Advisor', details: 'App that analyzes existing clothes and suggests outfits.', status: 'Inbox', category: 'Tech', date: '2026-09-25' },
+        { id: '2', title: 'ReSwap Fashion Marketplace', details: 'Peer to peer sustainable secondhand clothing platform.', status: 'Exploring', category: 'Business', date: '2026-09-20' },
+        { id: '3', title: 'German Learning Adventure Game', details: 'Gamified RPG for vocabulary retention.', status: 'Project', category: 'Study', date: '2026-09-18' }
+      ],
+      projects: [
+        { id: 'p1', name: 'German Learning Adventure', desc: 'Interactive language study tool.', progress: 40, status: 'Building', nextAction: 'Design level 2 vocab list' }
+      ],
+      tasks: [
+        { id: 't1', title: 'German 15 min review', done: true },
+        { id: 't2', title: 'Draft project notes for AI Wardrobe', done: false },
+        { id: 't3', title: 'Read 10 pages of book', done: false }
+      ],
+      habits: [
+        { id: 'h1', name: 'German Practice', streak: 5, doneToday: true },
+        { id: 'h2', name: 'Read 10 Pages', streak: 3, doneToday: false },
+        { id: 'h3', name: 'Exercise', streak: 12, doneToday: true }
+      ],
+      journal: [
+        { id: 'j1', date: '2026-09-27', title: 'Productive Sunday', content: 'Focused on core architecture and captured new ideas.', mood: '🔥 Productive' }
+      ]
+    };
+
+    // State Management
+    let state = JSON.parse(localStorage.getItem('LUNA_OS_DATA')) || defaultData;
+    let selectedIdeaForExplore = null;
+    let selectedMood = '🙂 Good';
+
+    function saveState() {
+      localStorage.setItem('LUNA_OS_DATA', JSON.stringify(state));
+      renderAll();
+    }
+
+    // Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      
+      const targetPage = document.getElementById(tabId);
+      if (targetPage) targetPage.classList.add('active');
+
+      const navButtons = document.querySelectorAll('.nav-list .nav-item button');
+      navButtons.forEach(btn => {
+        if (btn.getAttribute('onclick').includes(tabId)) {
+          btn.parentElement.classList.add('active');
+        }
+      });
+    }
+
+    // Modals
+    function openCaptureModal() {
+      document.getElementById('capture-modal').classList.add('active');
+      document.getElementById('quick-idea-input').focus();
+    }
+    function closeCaptureModal() {
+      document.getElementById('capture-modal').classList.remove('active');
+      document.getElementById('quick-idea-input').value = '';
+      document.getElementById('quick-idea-details').value = '';
+    }
+
+    function openExploreModal(ideaId) {
+      selectedIdeaForExplore = ideaId;
+      document.getElementById('explore-modal').classList.add('active');
+    }
+    function closeExploreModal() {
+      document.getElementById('explore-modal').classList.remove('active');
+    }
+
+    function openProjectModal() {
+      document.getElementById('project-modal').classList.add('active');
+    }
+    function closeProjectModal() {
+      document.getElementById('project-modal').classList.remove('active');
+      document.getElementById('new-proj-name').value = '';
+      document.getElementById('new-proj-desc').value = '';
+      document.getElementById('new-proj-action').value = '';
+    }
+
+    // Actions
+    function saveQuickIdea() {
+      const title = document.getElementById('quick-idea-input').value.trim();
+      const details = document.getElementById('quick-idea-details').value.trim();
+      if (!title) return;
+
+      state.ideas.unshift({
+        id: Date.now().toString(),
+        title,
+        details,
+        status: 'Inbox',
+        category: 'Random',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      saveState();
+      closeCaptureModal();
+    }
+
+    function convertIdeaToProjectExec() {
+      if (!selectedIdeaForExplore) return;
+      const idea = state.ideas.find(i => i.id === selectedIdeaForExplore);
+      if (!idea) return;
+
+      const problem = document.getElementById('exp-problem').value;
+      const nextAction = document.getElementById('exp-action').value || 'Define scope and specs';
+
+      state.projects.unshift({
+        id: 'p_' + Date.now(),
+        name: idea.title,
+        desc: problem || idea.details || 'No detailed description.',
+        progress: 10,
+        status: 'Planning',
+        nextAction: nextAction
+      });
+
+      idea.status = 'Project';
+      saveState();
+      closeExploreModal();
+      switchTab('projects');
+    }
+
+    function saveNewProject() {
+      const name = document.getElementById('new-proj-name').value.trim();
+      const desc = document.getElementById('new-proj-desc').value.trim();
+      const action = document.getElementById('new-proj-action').value.trim();
+
+      if (!name) return;
+
+      state.projects.unshift({
+        id: 'p_' + Date.now(),
+        name,
+        desc: desc || 'No detailed description.',
+        progress: 0,
+        status: 'Planning',
+        nextAction: action || 'Initial planning'
+      });
+
+      saveState();
+      closeProjectModal();
+    }
+
+    function addTask() {
+      const input = document.getElementById('new-task-input');
+      if (!input.value.trim()) return;
+      state.tasks.push({ id: Date.now().toString(), title: input.value.trim(), done: false });
+      input.value = '';
+      saveState();
+    }
+
+    function toggleTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (task) task.done = !task.done;
+      saveState();
+    }
+
+    function addHabit() {
+      const input = document.getElementById('new-habit-input');
+      if (!input.value.trim()) return;
+      state.habits.push({ id: Date.now().toString(), name: input.value.trim(), streak: 0, doneToday: false });
+      input.value = '';
+      saveState();
+    }
+
+    function toggleHabit(id) {
+      const habit = state.habits.find(h => h.id === id);
+      if (habit) {
+        habit.doneToday = !habit.doneToday;
+        habit.streak += habit.doneToday ? 1 : -1;
+        if (habit.streak < 0) habit.streak = 0;
+      }
+      saveState();
+    }
+
+    function selectMood(mood) { selectedMood = mood; }
+
+    function saveJournalEntry() {
+      const title = document.getElementById('journal-title').value.trim();
+      const content = document.getElementById('journal-content').value.trim();
+      if (!content) return;
+
+      state.journal.unshift({
+        id: Date.now().toString(),
+        date: new Date().toISOString().split('T')[0],
+        title: title || 'Daily Note',
+        content,
+        mood: selectedMood
+      });
+
+      document.getElementById('journal-title').value = '';
+      document.getElementById('journal-content').value = '';
+      saveState();
+    }
+
+    function saveQuickJournal() {
+      const val = document.getElementById('dash-quick-journal').value.trim();
+      if (!val) return;
+      state.journal.unshift({
+        id: Date.now().toString(),
+        date: new Date().toISOString().split('T')[0],
+        title: 'Quick Reflection',
+        content: val,
+        mood: '🙂 Good'
+      });
+      document.getElementById('dash-quick-journal').value = '';
+      saveState();
+      alert('Journal entry saved!');
+    }
+
+    // Render Functions
+    function renderDashboard() {
+      const hour = new Date().getHours();
+      let greeting = "Good evening";
+      if (hour < 12) greeting = "Good morning";
+      else if (hour < 18) greeting = "Good afternoon";
+      document.getElementById('greeting-text').innerText = `${greeting}, Luna.`;
+
+      document.getElementById('dash-priorities-list').innerHTML = state.tasks.slice(0, 3).map(t => `
+        <li class="list-item">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask('${t.id}')">
+              ${t.done ? '✓' : ''}
+            </div>
+            <span style="${t.done ? 'text-decoration: line-through; color: var(--text-dim);' : ''}">${t.title}</span>
+          </div>
+        </li>
+      `).join('');
+
+      const completedCount = state.tasks.filter(t => t.done).length;
+      document.getElementById('dash-today-progress').innerText = `${completedCount} / ${state.tasks.length} Done`;
+
+      document.getElementById('dash-habits-list').innerHTML = state.habits.map(h => `
+        <li class="list-item">
+          <span>${h.name}</span>
+          <span style="color: var(--accent-primary); font-weight: 600;">🔥 ${h.streak}d</span>
+        </li>
+      `).join('');
+
+      document.getElementById('dash-projects-container').innerHTML = state.projects.map(p => `
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-sm);">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">${p.name}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Next: ${p.nextAction}</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${p.progress}%;"></div></div>
+        </div>
+      `).join('');
+    }
+
+    function renderIdeas() {
+      const container = document.getElementById('ideas-grid');
+      const search = document.getElementById('idea-search').value.toLowerCase();
+      const filter = document.getElementById('idea-filter').value;
+
+      const filtered = state.ideas.filter(i => {
+        const matchesSearch = i.title.toLowerCase().includes(search) || i.details.toLowerCase().includes(search);
+        const matchesFilter = filter === 'ALL' || i.status === filter;
+        return matchesSearch && matchesFilter;
+      });
+
+      container.innerHTML = filtered.map(i => `
+        <div class="card">
+          <div style="display: flex; justify-content: space-between;">
+            <span class="badge badge-inbox">${i.category}</span>
+            <span class="badge badge-project">${i.status}</span>
+          </div>
+          <div style="font-weight: 600; font-size: 1.05rem;">${i.title}</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); flex-grow: 1;">${i.details || 'No details added yet.'}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-dim);">
+            <span>${i.date}</span>
+            ${i.status !== 'Project' ? `<button class="btn-secondary btn" style="font-size: 0.75rem; padding: 4px 8px;" onclick="openExploreModal('${i.id}')">Explore →</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderProjects() {
+      document.getElementById('projects-list').innerHTML = state.projects.map(p => `
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="font-size: 1.1rem; font-weight: 600;">${p.name}</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">${p.desc}</p>
+            </div>
+            <span class="badge badge-active">${p.status}</span>
+          </div>
+          <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: var(--radius-sm); font-size: 0.85rem;">
+            <strong>Next Action:</strong> ${p.nextAction}
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">
+              <span>Progress</span>
+              <span>${p.progress}%</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${p.progress}%;"></div></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderToday() {
+      document.getElementById('today-tasks-list').innerHTML = state.tasks.map(t => `
+        <li class="list-item">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask('${t.id}')">
+              ${t.done ? '✓' : ''}
+            </div>
+            <span style="${t.done ? 'text-decoration: line-through; color: var(--text-dim);' : ''}">${t.title}</span>
+          </div>
+        </li>
+      `).join('');
+
+      const doneCount = state.tasks.filter(t => t.done).length;
+      const pct = state.tasks.length ? (doneCount / state.tasks.length) * 100 : 0;
+      document.getElementById('today-task-progress-bar').style.width = pct + '%';
+    }
+
+    function renderJournal() {
+      document.getElementById('journal-entries-list').innerHTML = state.journal.map(j => `
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem;">
+            <span>${j.date}</span>
+            <span>${j.mood}</span>
+          </div>
+          <h4 style="font-size: 1rem; font-weight: 600;">${j.title}</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted); white-space: pre-line;">${j.content}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderHabits() {
+      document.getElementById('habits-full-list').innerHTML = state.habits.map(h => `
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600;">${h.name}</span>
+            <span style="color: var(--accent-primary); font-weight: 700;">🔥 ${h.streak} days</span>
+          </div>
+          <button class="${h.doneToday ? 'btn-secondary' : ''} btn" style="width: 100%; justify-content: center;" onclick="toggleHabit('${h.id}')">
+            ${h.doneToday ? 'Completed Today ✓' : 'Mark Completed'}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderReview() {
+      const tags = {};
+      state.ideas.forEach(i => tags[i.category] = (tags[i.category] || 0) + 1);
+      
+      document.getElementById('patterns-container').innerHTML = Object.keys(tags).map(k => `
+        <div style="background: rgba(167, 139, 250, 0.1); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.88rem;">
+          💡 You captured <strong>${tags[k]} ideas</strong> in <strong>${k}</strong>.
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderDashboard();
+      renderIdeas();
+      renderProjects();
+      renderToday();
+      renderJournal();
+      renderHabits();
+      renderReview();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+        e.preventDefault();
+        openCaptureModal();
+      }
+    });
+
+    // Start
+    window.onload = renderAll;
+  </script>
+</body>
+</html>
